@@ -2,3 +2,4 @@ flask
 docxtpl
 supabase
 python-dotenv
+gunicorn
