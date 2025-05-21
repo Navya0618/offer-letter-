@@ -31,7 +31,7 @@ docxtpl==0.19.1
 etils==1.12.2
 executing==2.2.0
 fastapi==0.115.12
-Flask==2.3.3
+Flask
 Flask-Assets==2.1.0
 flask-cors==5.0.1
 Flask-PyMongo==3.0.1
