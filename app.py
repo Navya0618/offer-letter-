@@ -1,44 +1,38 @@
-from flask import Flask, render_template, request, send_file, redirect, url_for, flash, session, make_response
+from flask import Flask, render_template, request, send_file, redirect, url_for, flash, session
 from docxtpl import DocxTemplate
 import os
-import uuid
 from supabase import create_client, Client
-from functools import wraps
 import datetime
 from dotenv import load_dotenv
 
-# Supabase config
+# Load environment variables
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")# Hide this in env vars for production
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
+# Init Supabase
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = Flask(__name__, template_folder='templates')
-app.secret_key = 'your-secret-key'  # Make sure this is secure!
+app.secret_key = 'your-secret-key'  # Use a secure key in production!
 
-# ✅ Date formatting function
+# Global login enforcement
+@app.before_request
+def require_login():
+    allowed_routes = ['login', 'register', 'static']  # allow unauthenticated access to login and register
+    if request.endpoint not in allowed_routes and 'token' not in session:
+        return redirect(url_for('login'))
+
+# Format date for offer letters
 def format_date_with_suffix(date_str):
     date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d")
     day = int(date_obj.strftime("%d"))
     suffix = 'th' if 11 <= day <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(day % 10, 'th')
     return f"{day}{suffix} {date_obj.strftime('%B %Y')}"
 
-# ✅ Login required decorator
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'token' not in session:
-            flash("You must be logged in to access that page.", "warning")
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
 @app.route('/')
 def index():
-    if 'token' in session:
-        return redirect(url_for('form'))
-    return redirect(url_for('login'))
+    return redirect(url_for('form'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -53,15 +47,16 @@ def login():
             })
 
             if result.session:
+                session.permanent = False  # ❗ Session ends when browser is closed
                 session['token'] = result.session.access_token
                 session['user'] = email
                 flash('Login successful!', 'success')
                 return redirect(url_for('form'))
             else:
-                flash('Login failed. Please check your credentials.', 'error')
+                flash('Login failed. Please check your credentials.', 'danger')
 
         except Exception as e:
-            flash(f'Error: {str(e)}', 'error')
+            flash(f'Login error: {str(e)}', 'danger')
 
     return render_template('login.html')
 
@@ -73,7 +68,7 @@ def register():
         confirm_password = request.form['confirm_password']
 
         if password != confirm_password:
-            flash('Passwords do not match.', 'error')
+            flash('Passwords do not match.', 'danger')
             return render_template('register.html')
 
         try:
@@ -86,15 +81,14 @@ def register():
                 flash('Registration successful! Please check your email to verify.', 'success')
                 return redirect(url_for('login'))
             else:
-                flash('Registration failed.', 'error')
+                flash('Registration failed.', 'danger')
 
         except Exception as e:
-            flash(f'Error: {str(e)}', 'error')
+            flash(f'Registration error: {str(e)}', 'danger')
 
     return render_template('register.html')
 
 @app.route('/form', methods=['GET', 'POST'])
-@login_required
 def form():
     if request.method == 'POST':
         first_name = request.form['first_name']
@@ -139,7 +133,6 @@ def form():
     return render_template("form.html")
 
 @app.route('/logout')
-@login_required
 def logout():
     session.clear()
     supabase.auth.sign_out()

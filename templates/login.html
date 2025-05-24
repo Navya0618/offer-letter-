@@ -1,76 +1,106 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #cfdef3;
-      margin: 0;
-      padding: 0;
-    }
-    .form-container {
-      width: 400px;
-      margin: 100px auto;
-      padding: 30px;
-      background-color: white;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      border-radius: 8px;
-    }
-    .form-container h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .form-container form {
+      background: linear-gradient(to right, #e0eafc, #cfdef3);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
     }
-    .form-container input {
-      padding: 12px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+
+    .login-container {
+      width: 100%;
+      max-width: 450px;
+      background-color: white;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+      animation: fadeIn 0.8s ease-in-out;
     }
-    .form-container button {
-      padding: 12px;
+
+    .login-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-header img {
+      height: 40px;
+      margin-right: 10px;
+    }
+
+    .form-label {
+      font-weight: 500;
+    }
+
+    .form-control:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
+    }
+
+    .btn-primary {
       background-color: #4f46e5;
-      color: white;
       border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
+      font-weight: 500;
     }
-    .form-container button:hover {
+
+    .btn-primary:hover {
       background-color: #4338ca;
     }
-    .form-link {
-      margin-top: 10px;
-      text-align: center;
-      font-size: 14px;
-    }
-    .form-link a {
-      color: #4f46e5;
-      text-decoration: none;
-    }
-    .form-link a:hover {
-      text-decoration: underline;
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
-  <div class="form-container">
-    <h2>Login</h2>
-    <form action="/login" method="POST">
-      <input type="email" name="email" placeholder="Email" required />
-      <input type="password" name="password" placeholder="Password" required />
-      <button type="submit">Login</button>
-      <div class="form-link">
-    <a href="/register">Register here</a>
-  </div>
+
+  <div class="login-container">
+    <div class="login-header">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+      <h4 class="m-0">Offer Letter Portal</h4>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/login">
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" name="email" placeholder="you@example.com" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" name="password" placeholder="Enter password" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Log In</button>
     </form>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
